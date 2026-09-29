@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F5A3A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Veg diary">
+<title>Granden – Vegetable diary</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231F5A3A'/%3E%3Cpath d='M16 27V15' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M16 17c0-6 4-10 10-10 0 6-4 10-10 10z' fill='%238DBE3A'/%3E%3Cpath d='M16 21c0-5-3-8-8-8 0 5 3 8 8 8z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Tamma+2:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F6EE; --card:#FFFFFF; --soil:#3B2A1E; --soil-2:#6E5C4E;
+  --leaf:#1F5A3A; --leaf-2:#E1EDDF; --sprout:#8DBE3A; --tomato:#D4432C;
+  --line:#D5DFD0; --err:#B3261E; --r-sm:10px; --r-lg:18px;
+  font-family:"Baloo Tamma 2", system-ui, -apple-system, "Segoe UI", "Noto Sans Kannada", sans-serif;
+  color:var(--soil); background:var(--paper); box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#131A15; --card:#1B241E; --soil:#E9EFE6; --soil-2:#A9B5A6;
+    --leaf:#7FC89A; --leaf-2:#233328; --sprout:#9ED04A; --tomato:#EE6A52; --line:#2E3B32; --err:#FF8A80;
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);font-size:17px;line-height:1.45}
+main{max-width:560px;margin:0 auto;padding:18px 18px 90px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--leaf);font-size:20px;margin-bottom:14px}
+.brand svg{width:26px;height:26px}
+h1{font-size:29px;line-height:1.12;margin:4px 0 8px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:21px;line-height:1.2;margin:0 0 6px;font-weight:600}
+.lede{color:var(--soil-2);margin:0 0 20px}
+.small{font-size:14px;color:var(--soil-2)}
+.q{margin:0 0 24px;border:0;padding:0;min-width:0}
+.q > legend,.qt{display:block;font-weight:600;font-size:18px;margin-bottom:4px;padding:0}
+.hint{font-size:14px;color:var(--soil-2);margin:0 0 10px}
+.opt{font-weight:400;color:var(--soil-2);font-size:14px}
+input[type=text],input[type=tel],input[type=number],input[type=date]{
+  width:100%;font:inherit;font-size:17px;color:var(--soil);background:var(--card);
+  border:1.5px solid var(--line);border-radius:var(--r-sm);padding:11px 13px;min-height:48px;
+}
+input:focus-visible{outline:3px solid var(--sprout);outline-offset:1px;border-color:var(--leaf)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  font:inherit;font-size:16px;cursor:pointer;min-height:44px;border:1.5px solid var(--line);
+  background:var(--card);color:var(--soil);border-radius:999px;padding:6px 15px;line-height:1.2;
+  -webkit-tap-highlight-color:transparent;
+}
+.chip[aria-pressed="true"]{background:var(--leaf);border-color:var(--leaf);color:var(--card)}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.chip:focus-visible,.btn:focus-visible,.veg:focus-visible,.day:focus-visible,.textbtn:focus-visible{outline:3px solid var(--sprout);outline-offset:2px}
+
+/* vegetable picker */
+.veg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.veg{
+  font:inherit;text-align:left;cursor:pointer;background:var(--card);color:var(--soil);
+  border:1.5px solid var(--line);border-radius:var(--r-lg);padding:11px 14px 10px;
+  display:flex;flex-direction:column;min-height:70px;position:relative;-webkit-tap-highlight-color:transparent;
+}
+.veg b{font-size:18px;font-weight:600;line-height:1.15;padding-right:22px}
+.veg small{font-size:15px;color:var(--soil-2)}
+.veg::after{content:"";position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);background:var(--card)}
+.veg[aria-pressed="true"]{border-color:var(--leaf);background:var(--leaf-2)}
+.veg[aria-pressed="true"]::after{
+  background:var(--leaf) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3L15 6.5' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat;
+  border-color:var(--leaf);
+}
+.item{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r-lg);padding:14px 14px 16px;margin-bottom:12px}
+.item h3{margin:0 0 6px;font-size:19px;font-weight:600}
+.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.item h3 small{font-weight:400;color:var(--soil-2);font-size:15px;margin-left:6px}
+.item .sub{display:block;font-size:14px;color:var(--soil-2);margin:12px 0 6px}
+.money{position:relative;max-width:180px}
+.money span{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--soil-2)}
+.money input{padding-left:30px}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--leaf);padding-top:10px;margin:6px 0 20px;font-weight:600}
+.total strong{font-size:24px;color:var(--leaf)}
+
+/* errors, buttons */
+.err{color:var(--err);font-size:14px;margin:6px 0 0;display:none}
+.bad > .err,.item.bad .err{display:block}
+.item.bad{border-color:var(--err)}
+.btn{
+  font:inherit;font-weight:600;font-size:17px;cursor:pointer;border-radius:999px;padding:12px 22px;min-height:50px;
+  border:1.5px solid var(--leaf);background:transparent;color:var(--leaf);text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.btn.primary{background:var(--tomato);border-color:var(--tomato);color:#fff}
+.btn[disabled]{opacity:.6;cursor:wait}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .btn{flex:1 1 150px}
+.textbtn{font:inherit;font-size:15px;background:none;border:0;color:var(--leaf);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 2px;min-height:40px}
+.textbtn.danger{color:var(--err)}
+.banner{border:1.5px solid var(--err);color:var(--err);border-radius:var(--r-sm);padding:10px 12px;font-size:15px;margin:0 0 16px}
+[hidden]{display:none!important}
+
+/* home */
+.stats{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:1px;background:var(--line);border:1.5px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin:16px 0}
+.stats div{background:var(--card);padding:12px 12px 10px}
+.stats strong{display:block;font-size:24px;line-height:1.1;color:var(--leaf)}
+.stats span{font-size:14px;color:var(--soil-2)}
+.panel{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r-lg);padding:16px;margin:0 0 16px}
+.panel.cta{border-color:var(--tomato)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+.cal .wd{font-size:13px;color:var(--soil-2);text-align:center}
+.day{
+  font:inherit;font-size:15px;aspect-ratio:1;min-height:38px;border-radius:10px;cursor:pointer;
+  border:1.5px solid var(--line);background:var(--card);color:var(--soil);padding:0;
+}
+.day.logged{background:var(--sprout);border-color:var(--sprout);color:#1b2a10;font-weight:600}
+.day.today{border-color:var(--leaf);border-width:2.5px}
+.day:disabled{opacity:.35;cursor:default}
+.trip{border-top:1.5px solid var(--line);padding:12px 0 4px}
+.trip:first-of-type{border-top:0}
+.trip-head{display:flex;justify-content:space-between;gap:10px;font-weight:600}
+.trip ul{margin:4px 0 0;padding:0;list-style:none;font-size:15px}
+.trip li{display:flex;justify-content:space-between;gap:10px;color:var(--soil-2)}
+details summary{cursor:pointer;font-weight:600;min-height:40px;display:flex;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:15px;margin-top:6px}
+td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.linkbox{font-size:15px;background:var(--card);word-break:break-all}
+.toast{
+  position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);
+  background:var(--leaf);color:var(--card);padding:10px 18px;border-radius:999px;font-weight:600;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:90vw
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+ol.steps{padding-left:20px;margin:6px 0 0}
+ol.steps li{margin-bottom:4px}
+footer{font-size:13px;color:var(--soil-2);margin-top:26px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 29V15" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M16 17c0-6 4-10 11-10 0 7-4 11-11 10z" fill="#8DBE3A"/><path d="M16 21c0-5-3-8-9-8 0 5 3 8 9 8z" fill="currentColor"/></svg>
+    Granden
+  </div>
+
+  <!-- LOADING -->
+  <section id="v-loading"><p class="lede">Opening your diary…</p></section>
+
+  <!-- ERROR -->
+  <section id="v-error" hidden>
+    <h1 id="e-title"></h1>
+    <p class="lede" id="e-msg"></p>
+    <div class="row" id="e-actions"></div>
+  </section>
+
+  <!-- REGISTER / EDIT PROFILE -->
+  <section id="v-register" hidden>
+    <h1 id="r-title"></h1>
+    <p class="lede" id="r-lede"></p>
+    <div class="banner" hidden></div>
+    <div class="q" id="rq-name">
+      <label class="qt" for="r-name">Your name</label>
+      <input type="text" id="r-name" autocomplete="name" maxlength="60">
+      <p class="err">Enter your name.</p>
+    </div>
+    <div class="q" id="rq-phone">
+      <label class="qt" for="r-phone">Mobile number</label>
+      <p class="hint">Used only to send reminders and to recover your diary if you lose the link.</p>
+      <input type="tel" id="r-phone" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="98xxxxxxxx">
+      <p class="err">Enter a 10-digit mobile number.</p>
+    </div>
+    <div class="q" id="rq-area">
+      <label class="qt" for="r-area">Your area</label>
+      <p class="hint">For example: Jayanagar, HSR Layout, Whitefield, Malleshwaram</p>
+      <input type="text" id="r-area" autocomplete="address-level3" maxlength="80">
+      <p class="err">Enter your area.</p>
+    </div>
+    <fieldset class="q" id="rq-adults">
+      <legend>Adults at home (18 and over)</legend>
+      <div class="chips" id="r-adults"></div>
+      <p class="err">Choose the number of adults.</p>
+    </fieldset>
+    <fieldset class="q" id="rq-children">
+      <legend>Children at home (under 18)</legend>
+      <div class="chips" id="r-children"></div>
+      <p class="err">Choose the number of children.</p>
+    </fieldset>
+    <fieldset class="q" id="rq-diet">
+      <legend>What does your household eat?</legend>
+      <div class="chips" id="r-diet"></div>
+      <p class="err">Choose one.</p>
+    </fieldset>
+    <div class="row">
+      <button class="btn" id="r-cancel" type="button">Cancel</button>
+      <button class="btn primary" id="r-save" type="button"></button>
+    </div>
+    <footer id="r-foot"></footer>
+  </section>
+
+  <!-- PERSONAL LINK -->
+  <section id="v-link" hidden>
+    <h1 id="l-title"></h1>
+    <p class="lede">This link opens your family's diary. Keep it somewhere you'll find it; this phone will also remember you.</p>
+    <div class="q">
+      <label class="qt" for="l-text">Your personal link</label>
+      <input type="text" id="l-text" class="linkbox" readonly>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <a class="btn primary" id="l-wa" target="_blank" rel="noopener">Send to my WhatsApp</a>
+      <button class="btn" id="l-copy" type="button">Copy link</button>
+    </div>
+    <div class="panel">
+      <h2>Open it like an app</h2>
+      <p class="small" style="margin:0">Add this page to your home screen so logging takes one tap.</p>
+      <ol class="steps small">
+        <li>iPhone: tap Share, then Add to Home Screen.</li>
+        <li>Android: tap the ⋮ menu, then Add to Home screen.</li>
+      </ol>
+    </div>
+    <button class="btn" id="l-go" type="button" style="width:100%">Go to my diary</button>
+  </section>
+
+  <!-- HOME -->
+  <section id="v-home" hidden>
+    <div class="small" id="h-hi"></div>
+    <h1 id="h-title"></h1>
+    <p class="lede" id="h-status" style="margin-bottom:0"></p>
+    <div class="stats">
+      <div><strong id="h-spend">₹0</strong><span>spent so far</span></div>
+      <div><strong id="h-trips">0</strong><span>purchases</span></div>
+      <div><strong id="h-days">0</strong><span>days logged</span></div>
+    </div>
+    <div class="row" id="h-actions" style="margin-bottom:16px">
+      <button class="btn primary" id="h-log" type="button">Log a purchase</button>
+      <button class="btn" id="h-repeat" type="button">Repeat last purchase</button>
+    </div>
+    <div class="panel cta" id="h-final" hidden>
+      <h2>Your month is almost done</h2>
+      <p class="small" style="margin:0 0 12px">Answer four last questions about growing vegetables at home.</p>
+      <button class="btn primary" id="h-final-go" type="button">Answer now</button>
+    </div>
+    <p class="small" id="h-final-done" hidden>Month-end questions answered. <button class="textbtn" id="h-final-edit" type="button">Change answers</button></p>
+    <div class="panel">
+      <h2>This month</h2>
+      <p class="small" style="margin:0">Green days have purchases. Tap any past day to add one you missed.</p>
+      <div class="cal" id="h-cal"></div>
+    </div>
+    <div class="panel" id="h-veg-panel" hidden>
+      <details>
+        <summary>Totals by vegetable</summary>
+        <table><thead><tr><th>Vegetable</th><th class="num">Quantity</th><th class="num">Spent</th></tr></thead><tbody id="h-veg"></tbody></table>
+      </details>
+    </div>
+    <div class="panel">
+      <h2>Your purchases</h2>
+      <div id="h-list"></div>
+    </div>
+    <div class="row">
+      <button class="textbtn" id="h-link" type="button">My personal link</button>
+      <button class="textbtn" id="h-profile" type="button">Edit family details</button>
+    </div>
+    <footer id="h-foot"></footer>
+  </section>
+
+  <!-- LOG A PURCHASE -->
+  <section id="v-log" hidden>
+    <h1 id="g-title">Log a purchase</h1>
+    <div class="banner" hidden></div>
+    <div class="q" id="gq-date">
+      <label class="qt" for="g-date">When did you buy?</label>
+      <div class="chips" style="margin-bottom:8px">
+        <button class="chip" type="button" id="g-today">Today</button>
+        <button class="chip" type="button" id="g-yday">Yesterday</button>
+      </div>
+      <input type="date" id="g-date">
+      <p class="hint" id="g-date-label" style="margin:6px 0 0"></p>
+      <p class="err">Choose a date within this month, not in the future.</p>
+    </div>
+    <div class="q" id="gq-veg">
+      <div class="qt">What did you buy?</div>
+      <p class="hint">Tap every vegetable from this purchase.</p>
+      <div class="veg-grid" id="g-grid"></div>
+      <p class="err">Choose at least one vegetable.</p>
+    </div>
+    <div id="g-items"></div>
+    <button class="btn" id="g-add-other" type="button" hidden style="width:100%;margin-bottom:22px">+ Add another vegetable</button>
+    <fieldset class="q" id="gq-channel">
+      <legend>Where did you buy?</legend>
+      <div class="chips" id="g-channel"></div>
+      <p class="err">Choose where you bought these.</p>
+    </fieldset>
+    <div class="total"><span>This purchase</span><strong id="g-total">₹0</strong></div>
+    <div class="row">
+      <button class="btn" id="g-cancel" type="button">Cancel</button>
+      <button class="btn primary" id="g-save" type="button">Save purchase</button>
+    </div>
+  </section>
+
+  <!-- MONTH-END QUESTIONS -->
+  <section id="v-final" hidden>
+    <h1>Growing vegetables at home</h1>
+    <p class="lede">Granden helps families grow their own vegetables at home. Four quick questions.</p>
+    <div class="banner" hidden></div>
+    <fieldset class="q" id="fq-interest">
+      <legend>Would you be interested in growing vegetables at home?</legend>
+      <div class="chips" id="f-interest"></div>
+      <p class="err">Choose one.</p>
+    </fieldset>
+    <div id="f-more" hidden>
+      <fieldset class="q" id="fq-space">
+        <legend>What space do you have?</legend>
+        <p class="hint">Choose all that apply.</p>
+        <div class="chips" id="f-space"></div>
+        <p class="err">Choose at least one.</p>
+      </fieldset>
+      <fieldset class="q">
+        <legend>Which would you like to grow? <span class="opt">(optional)</span></legend>
+        <div class="chips" id="f-grow"></div>
+      </fieldset>
+      <fieldset class="q">
+        <legend>How much would you spend to set it up? <span class="opt">(optional)</span></legend>
+        <div class="chips" id="f-budget"></div>
+      </fieldset>
+    </div>
+    <fieldset class="q">
+      <legend>What would stop you from growing at home? <span class="opt">(optional)</span></legend>
+      <div class="chips" id="f-concern"></div>
+    </fieldset>
+    <div class="row">
+      <button class="btn" id="f-cancel" type="button">Back</button>
+      <button class="btn primary" id="f-save" type="button">Save answers</button>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ================= CONFIG ================= */
+const APP = {
+  // Paste your Apps Script web app URL (ends in /exec)
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycby5Tg5QZB1rQCX-1TqNlQjIEo_vX_bE7OQTb3vUM1pqzKsIw5tD17Jdf9pRSaoDujMXZg/exec",
+  FOOTNOTE: "Your answers are used only for a student research project and are not shared."
+};
+
+/* ================= LISTS (must match Code.gs) ================= */
+const VEG = [
+  {id:"tomato",en:"Tomato",kn:"ಟೊಮ್ಯಾಟೊ",u:"kg"},
+  {id:"onion",en:"Onion",kn:"ಈರುಳ್ಳಿ",u:"kg"},
+  {id:"potato",en:"Potato",kn:"ಆಲೂಗಡ್ಡೆ",u:"kg"},
+  {id:"chilli",en:"Green chilli",kn:"ಹಸಿಮೆಣಸಿನಕಾಯಿ",u:"g"},
+  {id:"ginger",en:"Ginger",kn:"ಶುಂಠಿ",u:"g"},
+  {id:"lemon",en:"Lemon",kn:"ನಿಂಬೆಹಣ್ಣು",u:"pieces"},
+  {id:"coriander",en:"Coriander",kn:"ಕೊತ್ತಂಬರಿ ಸೊಪ್ಪು",u:"bunch"},
+  {id:"mint",en:"Mint",kn:"ಪುದೀನ",u:"bunch"},
+  {id:"methi",en:"Methi",kn:"ಮೆಂತ್ಯ ಸೊಪ್ಪು",u:"bunch"},
+  {id:"spinach",en:"Spinach",kn:"ಪಾಲಕ್ ಸೊಪ್ಪು",u:"bunch"},
+  {id:"carrot",en:"Carrot",kn:"ಕ್ಯಾರೆಟ್",u:"kg"},
+  {id:"beans",en:"Beans",kn:"ಹುರುಳಿಕಾಯಿ",u:"kg"},
+  {id:"brinjal",en:"Brinjal",kn:"ಬದನೆಕಾಯಿ",u:"kg"},
+  {id:"capsicum",en:"Capsicum",kn:"ದಪ್ಪ ಮೆಣಸಿನಕಾಯಿ",u:"kg"},
+  {id:"cucumber",en:"Cucumber",kn:"ಸೌತೆಕಾಯಿ",u:"kg"},
+  {id:"okra",en:"Okra",kn:"ಬೆಂಡೆಕಾಯಿ",u:"kg"},
+  {id:"radish",en:"Radish",kn:"ಮೂಲಂಗಿ",u:"kg"},
+  {id:"beetroot",en:"Beetroot",kn:"ಬೀಟ್‌ರೂಟ್",u:"kg"},
+  {id:"cabbage",en:"Cabbage",kn:"ಎಲೆಕೋಸು",u:"kg"},
+  {id:"cauliflower",en:"Cauliflower",kn:"ಹೂಕೋಸು",u:"kg"}
+];
+const OTHER = {id:"other",en:"Something else",kn:"",u:"kg"};
+const ALLVEG = [...VEG, OTHER];
+const UNITS = {
+  kg:{opts:[0.25,0.5,1,1.5,2,3,5]},
+  g:{opts:[50,100,250,500]},
+  bunch:{opts:[1,2,3,4,6]},
+  pieces:{opts:[1,2,4,6,10]}
+};
+const CHANNELS = ["Street vendor / pushcart","HOPCOMS","Local shop or market","Supermarket","Quick-delivery app (Blinkit, Zepto, Instamart)","Online grocery (BigBasket etc.)"];
+const DIETS = ["Vegetarian","Eggetarian","Non-vegetarian"];
+const INTEREST = ["Yes","Maybe","No"];
+const SPACES = ["Balcony","Terrace / rooftop","Garden or yard","Window sill only","No space"];
+const BUDGETS = ["Under ₹500","₹500–1,500","₹1,500–3,000","Above ₹3,000","Not sure"];
+const CONCERNS = ["Not enough space","No time to look after plants","Don't know how to grow","Cost","Plants may die or get pests","Nothing, I'd try it"];
+
+/* ================= UTILITIES ================= */
+const $ = s => document.querySelector(s);
+const VIEWS = ["loading","error","register","link","home","log","final"];
+function show(v){ VIEWS.forEach(x => $("#v-"+x).hidden = x !== v); window.scrollTo(0,0); }
+const store = {
+  get(){ try{ return localStorage.getItem("granden_h"); }catch(_){ return null; } },
+  set(h){ try{ localStorage.setItem("granden_h", h); }catch(_){} },
+  clear(){ try{ localStorage.removeItem("granden_h"); }catch(_){} }
+};
+const money = x => "₹" + Math.round(x || 0).toLocaleString("en-IN");
+const r2 = x => Math.round(x * 100) / 100;
+function fmtQty(q, u){
+  if(u === "kg"){ const f = {0.25:"¼",0.5:"½",0.75:"¾",1.5:"1½"}[q]; return (f || r2(q)) + " kg"; }
+  if(u === "g") return q >= 1000 ? r2(q/1000) + " kg" : q + " g";
+  if(u === "pieces") return q + (q === 1 ? " piece" : " pieces");
+  return q + (q === 1 ? " bunch" : " bunches");
+}
+function addDays(s, n){ const d = new Date(s + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0,10); }
+function fmtDate(s, long){
+  return new Date(s + "T00:00:00").toLocaleDateString("en-IN", long ? {weekday:"long", day:"numeric", month:"long"} : {weekday:"short", day:"numeric", month:"short"});
+}
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), 2600); }
+function banner(view, msg){ const b = $("#v-"+view+" .banner"); b.textContent = msg || ""; b.hidden = !msg; if(msg) b.scrollIntoView({block:"center"}); }
+function mark(el, ok){ el.classList.toggle("bad", !ok); return ok; }
+function firstBad(){ const f = document.querySelector("section:not([hidden]) .bad"); if(f) f.scrollIntoView({behavior:"smooth", block:"center"}); }
+async function busy(btn, label, fn){
+  const t = btn.textContent; btn.disabled = true; btn.textContent = label;
+  try{ return await fn(); } finally { btn.disabled = false; btn.textContent = t; }
+}
+function chip(label){ const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = label; b.setAttribute("aria-pressed","false"); return b; }
+function choices(el, options, {multi = false, exclusive = null, fmt = x => String(x), onChange} = {}){
+  let sel = multi ? new Set() : null;
+  el.innerHTML = "";
+  const btns = options.map(opt => {
+    const b = chip(fmt(opt));
+    b.onclick = () => {
+      if(multi){
+        if(sel.has(opt)) sel.delete(opt); else sel.add(opt);
+        if(exclusive !== null){ if(opt === exclusive && sel.has(opt)) sel = new Set([opt]); else if(opt !== exclusive) sel.delete(exclusive); }
+      } else sel = opt;
+      refresh(); el.closest(".q")?.classList.remove("bad"); onChange && onChange(get());
+    };
+    el.appendChild(b); return [opt, b];
+  });
+  function refresh(){ btns.forEach(([o,b]) => b.setAttribute("aria-pressed", String(multi ? sel.has(o) : sel === o))); }
+  function get(){ return multi ? [...sel] : sel; }
+  return { get, set(v){ sel = multi ? new Set(v || []) : (v ?? null); refresh(); } };
+}
+
+/* ================= API ================= */
+const ERRORS = {
+  not_found: "We couldn't find this diary.",
+  closed: "This month's diary is closed, so changes can't be saved.",
+  not_open: "The month-end questions aren't open yet.",
+  invalid: "Some answers weren't accepted. Check the highlighted fields and try again.",
+  network: "Couldn't reach the survey. Check your internet connection and try again."
+};
+async function api(action, data = {}){
+  const body = JSON.stringify(Object.assign({action}, data));
+  let res;
+  try{
+    if(window.GRANDEN_MOCK) res = await window.GRANDEN_MOCK(body);
+    else {
+      const r = await fetch(APP.SCRIPT_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body});
+      res = await r.json();
+    }
+  }catch(_){ throw Object.assign(new Error(ERRORS.network), {code:"network"}); }
+  if(!res || !res.ok){
+    const code = (res && res.error) || "server_error";
+    throw Object.assign(new Error(ERRORS[code] || "Something went wrong. Try again in a minute."), {code});
+  }
+  return res;
+}
+
+/* ================= STATE + BOOT ================= */
+const app = { h:null, st:null, profileMode:"register" };
+function personalLink(){ return location.href.split("#")[0].split("?")[0] + "?h=" + app.h; }
+function setState(st){ app.st = st; app.h = st.h; store.set(st.h); try{ history.replaceState(null, "", personalLink()); }catch(_){} }
+
+function showError(title, msg, actions){
+  $("#e-title").textContent = title; $("#e-msg").textContent = msg;
+  const box = $("#e-actions"); box.innerHTML = "";
+  (actions || []).forEach(([label, fn, primary]) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn" + (primary ? " primary" : "");
+    b.textContent = label; b.onclick = fn; box.appendChild(b);
+  });
+  show("error");
+}
+
+async function boot(){
+  $("#r-foot").textContent = APP.FOOTNOTE; $("#h-foot").textContent = APP.FOOTNOTE;
+  if(!APP.SCRIPT_URL && !window.GRANDEN_MOCK){
+    showError("Survey not connected yet", "Paste your Apps Script web app URL into SCRIPT_URL at the top of this file."); return;
+  }
+  const fromUrl = new URLSearchParams(location.search).get("h");
+  const h = fromUrl || store.get();
+  if(!h){ openProfile("register"); return; }
+  show("loading");
+  try{
+    setState(await api("load", {h}));
+    renderHome(); show("home");
+  }catch(e){
+    if(e.code === "not_found"){
+      store.clear();
+      if(fromUrl) showError("This link isn't recognised", "Check that you opened the full link you were sent. If you haven't joined yet, you can start a new diary.", [["Start a new diary", () => { history.replaceState(null, "", personalLink().split("?")[0]); openProfile("register"); }, true]]);
+      else openProfile("register");
+    } else showError("Couldn't open your diary", e.message, [["Try again", boot, true]]);
+  }
+}
+
+/* ================= REGISTER / PROFILE ================= */
+const adultsG = choices($("#r-adults"), [1,2,3,4,5,"6+"]);
+const childrenG = choices($("#r-children"), [0,1,2,3,"4+"]);
+const dietG = choices($("#r-diet"), DIETS);
+["name","phone","area"].forEach(k => $("#r-"+k).addEventListener("input", () => $("#rq-"+k).classList.remove("bad")));
+
+function openProfile(mode){
+  app.profileMode = mode;
+  const p = mode === "edit" ? app.st.profile : {};
+  $("#r-title").textContent = mode === "edit" ? "Your family details" : "Start your vegetable diary";
+  $("#r-lede").textContent = mode === "edit"
+    ? "Changes apply to your whole diary."
+    : "Log the vegetables your family buys this month. First, a few one-time details about your household.";
+  $("#r-name").value = p.name || ""; $("#r-phone").value = p.phone || ""; $("#r-area").value = p.area || "";
+  adultsG.set(p.adults ? (p.adults >= 6 ? "6+" : p.adults) : null);
+  childrenG.set(p.children !== undefined ? (p.children >= 4 ? "4+" : p.children) : null);
+  dietG.set(p.diet || null);
+  $("#r-save").textContent = mode === "edit" ? "Save changes" : "Start my diary";
+  $("#r-cancel").hidden = mode !== "edit";
+  document.querySelectorAll("#v-register .bad").forEach(x => x.classList.remove("bad"));
+  banner("register", ""); show("register");
+}
+function phoneOk(v){ const d = v.replace(/\D/g, ""); return /^[6-9]\d{9}$/.test(d.slice(-10)) && (d.length === 10 || (d.length === 12 && d.startsWith("91"))); }
+$("#r-cancel").onclick = () => show("home");
+$("#r-save").onclick = async () => {
+  let ok = true;
+  ok = mark($("#rq-name"), $("#r-name").value.trim().length > 0) && ok;
+  ok = mark($("#rq-phone"), phoneOk($("#r-phone").value)) && ok;
+  ok = mark($("#rq-area"), $("#r-area").value.trim().length > 1) && ok;
+  ok = mark($("#rq-adults"), adultsG.get() !== null) && ok;
+  ok = mark($("#rq-children"), childrenG.get() !== null) && ok;
+  ok = mark($("#rq-diet"), !!dietG.get()) && ok;
+  if(!ok){ firstBad(); return; }
+  const num = v => v === "6+" ? 6 : v === "4+" ? 4 : v;
+  const profile = { name:$("#r-name").value.trim(), phone:$("#r-phone").value.trim(), area:$("#r-area").value.trim(),
+    adults:num(adultsG.get()), children:num(childrenG.get()), diet:dietG.get() };
+  await busy($("#r-save"), "Saving…", async () => {
+    try{
+      if(app.profileMode === "register"){ setState(await api("register", {profile})); openLink(true); }
+      else { setState(await api("updateProfile", {h:app.h, profile})); renderHome(); show("home"); toast("Details saved"); }
+    }catch(e){ banner("register", e.message); }
+  });
+};
+
+/* ================= PERSONAL LINK ================= */
+function openLink(first){
+  const link = personalLink();
+  $("#l-title").textContent = first ? "You're in. Save your personal link." : "Your personal link";
+  $("#l-text").value = link;
+  $("#l-wa").href = "https://wa.me/?text=" + encodeURIComponent("My Granden vegetable diary: " + link);
+  show("link");
+}
+$("#l-copy").onclick = async () => {
+  try{ await navigator.clipboard.writeText($("#l-text").value); toast("Link copied"); }
+  catch(_){ $("#l-text").select(); toast("Select the link and copy it"); }
+};
+$("#l-go").onclick = () => { renderHome(); show("home"); };
+
+/* ================= HOME ================= */
+function renderHome(){
+  const {profile, trips, period:p, final} = app.st;
+  $("#h-hi").textContent = "Hi " + profile.name.split(" ")[0];
+  const sameMonth = p.start.slice(0,7) === p.end.slice(0,7);
+  $("#h-title").textContent = sameMonth
+    ? new Date(p.start + "T00:00:00").toLocaleDateString("en-IN", {month:"long"}) + " vegetable diary"
+    : "Vegetable diary";
+  const nDays = Math.round((Date.parse(p.end) - Date.parse(p.start)) / 864e5) + 1;
+  const dayNo = Math.round((Date.parse(p.today) - Date.parse(p.start)) / 864e5) + 1;
+  $("#h-status").textContent = {
+    before: `Logging opens on ${fmtDate(p.start, true)}. Come back then with this link.`,
+    open: `Day ${dayNo} of ${nDays}. Log each purchase on the day you make it.`,
+    grace: `The month is over. You can add missed purchases until ${fmtDate(p.closeOn, true)}.`,
+    closed: "This diary is closed. Thank you for taking part."
+  }[p.phase];
+
+  const total = trips.reduce((s,t) => s + t.items.reduce((a,i) => a + i.spend, 0), 0);
+  const days = new Set(trips.map(t => t.date));
+  $("#h-spend").textContent = money(total);
+  $("#h-trips").textContent = trips.length;
+  $("#h-days").textContent = days.size;
+
+  $("#h-actions").hidden = !p.canLog;
+  $("#h-repeat").hidden = !trips.length;
+  $("#h-final").hidden = !(p.finalOpen && !final);
+  $("#h-final-done").hidden = !final;
+  $("#h-final-edit").hidden = !p.finalOpen;
+
+  // calendar
+  const cal = $("#h-cal"); cal.innerHTML = "";
+  ["M","T","W","T","F","S","S"].forEach(d => { const e = document.createElement("div"); e.className = "wd"; e.textContent = d; e.setAttribute("aria-hidden","true"); cal.appendChild(e); });
+  const lead = (new Date(p.start + "T00:00:00").getDay() + 6) % 7;
+  for(let i = 0; i < lead; i++) cal.appendChild(document.createElement("div"));
+  const lastLoggable = p.today < p.end ? p.today : p.end;
+  for(let d = p.start; d <= p.end; d = addDays(d, 1)){
+    const b = document.createElement("button"); b.type = "button"; b.className = "day";
+    b.textContent = Number(d.slice(8));
+    if(days.has(d)) b.classList.add("logged");
+    if(d === p.today) b.classList.add("today");
+    b.setAttribute("aria-label", fmtDate(d, true) + (days.has(d) ? ", purchases logged" : ""));
+    b.disabled = !p.canLog || d > lastLoggable;
+    b.onclick = () => openLog({date:d});
+    cal.appendChild(b);
+  }
+
+  // per-vegetable totals
+  const agg = {};
+  trips.forEach(t => t.items.forEach(i => {
+    const isOther = i.id.startsWith("other");
+    const k = isOther ? "other:" + i.name.toLowerCase() : i.id;
+    const a = agg[k] || (agg[k] = {name: isOther ? i.name : (VEG.find(v => v.id === i.id) || {en:i.name}).en, unit:i.unit, q:0, s:0});
+    a.q += i.qty; a.s += i.spend;
+  }));
+  const tb = $("#h-veg"); tb.innerHTML = "";
+  Object.values(agg).sort((a,b) => b.s - a.s).forEach(a => {
+    const tr = document.createElement("tr");
+    [[a.name,""],[fmtQty(r2(a.q), a.unit),"num"],[money(a.s),"num"]].forEach(([t,c]) => { const td = document.createElement("td"); td.textContent = t; td.className = c; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+  $("#h-veg-panel").hidden = !trips.length;
+
+  // purchase list
+  const list = $("#h-list"); list.innerHTML = "";
+  if(!trips.length){
+    const e = document.createElement("p"); e.className = "small"; e.style.margin = "0";
+    e.textContent = p.canLog ? "Nothing logged yet. Tap Log a purchase after your next vegetable shop." : "No purchases logged.";
+    list.appendChild(e);
+  }
+  trips.forEach(t => {
+    const box = document.createElement("div"); box.className = "trip";
+    const head = document.createElement("div"); head.className = "trip-head";
+    const d = document.createElement("span"); d.textContent = fmtDate(t.date);
+    const s = document.createElement("span"); s.textContent = money(t.items.reduce((a,i) => a + i.spend, 0));
+    head.append(d, s); box.appendChild(head);
+    if(t.channel){ const c = document.createElement("div"); c.className = "small"; c.textContent = t.channel; box.appendChild(c); }
+    const ul = document.createElement("ul");
+    t.items.forEach(i => {
+      const li = document.createElement("li");
+      const a = document.createElement("span"); a.textContent = `${i.name}, ${fmtQty(i.qty, i.unit)}`;
+      const b = document.createElement("span"); b.textContent = money(i.spend);
+      li.append(a, b); ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    if(p.canLog){
+      const row = document.createElement("div"); row.className = "row"; row.style.gap = "16px";
+      const ed = document.createElement("button"); ed.type = "button"; ed.className = "textbtn"; ed.textContent = "Edit";
+      ed.onclick = () => openLog({trip:t});
+      const del = document.createElement("button"); del.type = "button"; del.className = "textbtn danger"; del.textContent = "Delete";
+      del.onclick = async () => {
+        if(!confirm(`Delete the purchase from ${fmtDate(t.date, true)}?`)) return;
+        try{ setState(await api("deleteTrip", {h:app.h, tripId:t.tripId})); renderHome(); toast("Purchase deleted"); }
+        catch(e){ toast(e.message); }
+      };
+      row.append(ed, del); box.appendChild(row);
+    }
+    list.appendChild(box);
+  });
+}
+$("#h-log").onclick = () => openLog({});
+$("#h-repeat").onclick = () => openLog({repeat: app.st.trips[0]});
+$("#h-final-go").onclick = () => openFinal();
+$("#h-final-edit").onclick = () => openFinal();
+$("#h-link").onclick = () => openLink(false);
+$("#h-profile").onclick = () => openProfile("edit");
+
+/* ================= LOG A PURCHASE ================= */
+const MAX_OTHERS = 3;
+let log = null;
+const channelG = choices($("#g-channel"), CHANNELS);
+function logBounds(){ const p = app.st.period; return {min:p.start, max: p.today < p.end ? p.today : p.end}; }
+function setLogDate(d){
+  log.date = d; $("#g-date").value = d;
+  $("#g-today").setAttribute("aria-pressed", String(d === app.st.period.today));
+  $("#g-yday").setAttribute("aria-pressed", String(d === addDays(app.st.period.today, -1)));
+  $("#g-date-label").textContent = d ? fmtDate(d, true) : "";
+  $("#gq-date").classList.remove("bad");
+}
+function newOther(name = "", qty = null, spend = "", unit = "kg"){ return {name, qty, spend: String(spend), unit}; }
+function openLog({date, trip, repeat}){
+  const {min, max} = logBounds();
+  log = {tripId: trip ? trip.tripId : null, date:null, picked:new Set(), items:{}, others:[]};
+  const src = trip || repeat;
+  if(src) src.items.forEach(i => {
+    if(i.id.startsWith("other")){ if(log.others.length < MAX_OTHERS) log.others.push(newOther(i.name, i.qty, i.spend, UNITS[i.unit] ? i.unit : "kg")); }
+    else if(VEG.some(v => v.id === i.id)){ log.picked.add(i.id); log.items[i.id] = {qty:i.qty, spend:String(i.spend)}; }
+  });
+  if(log.others.length) log.picked.add("other");
+  $("#g-title").textContent = trip ? "Edit purchase" : repeat ? "Repeat last purchase" : "Log a purchase";
+  $("#g-save").textContent = trip ? "Save changes" : "Save purchase";
+  $("#g-date").min = min; $("#g-date").max = max;
+  $("#g-today").disabled = app.st.period.today > max || app.st.period.today < min;
+  $("#g-yday").disabled = addDays(app.st.period.today, -1) < min || addDays(app.st.period.today, -1) > max;
+  setLogDate(trip ? trip.date : (date || max));
+  channelG.set(src ? (src.channel || null) : null);
+  renderGrid(); renderLogItems();
+  document.querySelectorAll("#v-log .bad").forEach(x => x.classList.remove("bad"));
+  banner("log", ""); show("log");
+}
+$("#g-today").onclick = () => setLogDate(app.st.period.today);
+$("#g-yday").onclick = () => setLogDate(addDays(app.st.period.today, -1));
+$("#g-date").onchange = e => setLogDate(e.target.value);
+function setOtherPicked(on){
+  if(on){ log.picked.add("other"); if(!log.others.length) log.others.push(newOther()); }
+  else { log.picked.delete("other"); log.others = []; }
+  const tile = document.querySelector('#g-grid .veg[data-id="other"]');
+  if(tile) tile.setAttribute("aria-pressed", String(on));
+}
+function renderGrid(){
+  const g = $("#g-grid"); g.innerHTML = "";
+  ALLVEG.forEach(v => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "veg"; b.dataset.id = v.id;
+    b.setAttribute("aria-pressed", String(log.picked.has(v.id)));
+    const t = document.createElement("b"); t.textContent = v.en;
+    const k = document.createElement("small"); k.textContent = v.kn || "Type its name"; if(v.kn) k.lang = "kn";
+    b.append(t, k);
+    b.onclick = () => {
+      if(v.id === "other"){
+        setOtherPicked(!log.picked.has("other"));
+        renderLogItems();
+        if(log.picked.has("other")){ const inp = document.querySelector('#g-items input[data-other-name]'); if(inp) inp.focus(); }
+      } else {
+        if(log.picked.has(v.id)) log.picked.delete(v.id); else log.picked.add(v.id);
+        b.setAttribute("aria-pressed", String(log.picked.has(v.id)));
+        renderLogItems();
+      }
+      $("#gq-veg").classList.remove("bad");
+    };
+    g.appendChild(b);
+  });
+}
+function itemCard({title, kn, unit, it, key, onRemove}){
+  const card = document.createElement("div"); card.className = "item"; card.dataset.key = key;
+  const head = document.createElement("div"); head.className = "item-head";
+  if(title !== null){
+    const h = document.createElement("h3"); h.textContent = title;
+    if(kn){ const s = document.createElement("small"); s.textContent = kn; s.lang = "kn"; h.appendChild(s); }
+    head.appendChild(h);
+  } else {
+    const wrap = document.createElement("div"); wrap.style.flex = "1";
+    const l = document.createElement("label"); l.className = "sub"; l.style.marginTop = "0"; l.textContent = "Vegetable name"; l.htmlFor = "on-" + key;
+    const inp = document.createElement("input"); inp.type = "text"; inp.maxLength = 40; inp.id = "on-" + key; inp.value = it.name; inp.dataset.otherName = "1";
+    inp.oninput = () => { it.name = inp.value; card.classList.remove("bad"); };
+    wrap.append(l, inp); head.appendChild(wrap);
+  }
+  if(onRemove){
+    const x = document.createElement("button"); x.type = "button"; x.className = "textbtn danger"; x.textContent = "Remove"; x.onclick = onRemove;
+    head.appendChild(x);
+  }
+  card.appendChild(head);
+  if(title === null){
+    const lu = document.createElement("span"); lu.className = "sub"; lu.textContent = "Measured in"; card.appendChild(lu);
+    const ug = document.createElement("div"); ug.className = "chips"; card.appendChild(ug);
+    const labels = {kg:"kg", g:"grams", bunch:"bunches", pieces:"pieces"};
+    const u = choices(ug, ["kg","g","bunch","pieces"], {fmt: x => labels[x], onChange: x => { if(x && x !== it.unit){ it.unit = x; it.qty = null; renderLogItems(); } }});
+    u.set(it.unit);
+  }
+  const l1 = document.createElement("span"); l1.className = "sub"; l1.textContent = "Quantity"; card.appendChild(l1);
+  const cg = document.createElement("div"); cg.className = "chips"; card.appendChild(cg);
+  const opts = UNITS[unit].opts.slice();
+  if(it.qty !== null && !opts.includes(it.qty)) opts.push(it.qty);
+  const g = choices(cg, opts, {fmt: q => fmtQty(q, unit), onChange: q => { it.qty = q; card.classList.remove("bad"); }});
+  g.set(it.qty);
+  const l2 = document.createElement("label"); l2.className = "sub"; l2.textContent = "Money spent"; l2.htmlFor = "sp-" + key; card.appendChild(l2);
+  const m = document.createElement("div"); m.className = "money";
+  const sym = document.createElement("span"); sym.textContent = "₹"; sym.setAttribute("aria-hidden","true");
+  const inp = document.createElement("input"); inp.type = "number"; inp.inputMode = "numeric"; inp.min = "0"; inp.max = "50000"; inp.step = "1"; inp.id = "sp-" + key; inp.value = it.spend;
+  inp.oninput = () => { it.spend = inp.value; updateLogTotal(); card.classList.remove("bad"); };
+  m.append(sym, inp); card.appendChild(m);
+  const e = document.createElement("p"); e.className = "err";
+  e.textContent = title === null ? "Enter the name, choose a quantity and enter the amount spent." : "Choose a quantity and enter the amount spent.";
+  card.appendChild(e);
+  return card;
+}
+function renderLogItems(){
+  const wrap = $("#g-items"); wrap.innerHTML = "";
+  VEG.filter(v => log.picked.has(v.id)).forEach(v => {
+    const it = log.items[v.id] || (log.items[v.id] = {qty:null, spend:""});
+    wrap.appendChild(itemCard({title:v.en, kn:v.kn, unit:v.u, it, key:v.id}));
+  });
+  log.others.forEach((it, i) => {
+    wrap.appendChild(itemCard({title:null, unit:it.unit, it, key:"other" + (i + 1), onRemove: () => {
+      log.others.splice(i, 1);
+      if(!log.others.length) setOtherPicked(false);
+      renderLogItems();
+    }}));
+  });
+  $("#g-add-other").hidden = !log.picked.has("other") || log.others.length >= MAX_OTHERS;
+  updateLogTotal();
+}
+$("#g-add-other").onclick = () => {
+  if(log.others.length >= MAX_OTHERS) return;
+  log.others.push(newOther()); renderLogItems();
+  const inputs = document.querySelectorAll('#g-items input[data-other-name]'); inputs[inputs.length - 1]?.focus();
+};
+function updateLogTotal(){
+  const vegSum = VEG.filter(v => log.picked.has(v.id)).reduce((s,v) => s + (parseFloat(log.items[v.id]?.spend) || 0), 0);
+  const othSum = log.others.reduce((s,o) => s + (parseFloat(o.spend) || 0), 0);
+  $("#g-total").textContent = money(vegSum + othSum);
+}
+$("#g-cancel").onclick = () => show("home");
+$("#g-save").onclick = async () => {
+  const {min, max} = logBounds();
+  let ok = mark($("#gq-date"), !!log.date && log.date >= min && log.date <= max);
+  ok = mark($("#gq-veg"), log.picked.size > 0) && ok;
+  const good = it => it.qty !== null && it.spend !== "" && parseFloat(it.spend) >= 0;
+  document.querySelectorAll("#g-items .item").forEach(card => {
+    const key = card.dataset.key;
+    const it = key.startsWith("other") ? log.others[Number(key.slice(5)) - 1] : log.items[key];
+    const valid = good(it) && (!key.startsWith("other") || it.name.trim().length > 0);
+    card.classList.toggle("bad", !valid); if(!valid) ok = false;
+  });
+  ok = mark($("#gq-channel"), !!channelG.get()) && ok;
+  if(!ok){ firstBad(); return; }
+  const items = VEG.filter(v => log.picked.has(v.id)).map(v => ({
+    id: v.id, name: v.en, qty: log.items[v.id].qty, spend: parseFloat(log.items[v.id].spend)
+  })).concat(log.others.map((o, i) => ({
+    id: "other" + (i + 1), name: o.name.trim(), qty: o.qty, unit: o.unit, spend: parseFloat(o.spend)
+  })));
+  const trip = { tripId: log.tripId, date: log.date, channel: channelG.get(), items };
+  await busy($("#g-save"), "Saving…", async () => {
+    try{
+      setState(await api("saveTrip", {h:app.h, trip}));
+      renderHome(); show("home"); toast(log.tripId ? "Purchase updated" : "Purchase saved");
+    }catch(e){ banner("log", e.message); }
+  });
+};
+
+/* ================= MONTH-END QUESTIONS ================= */
+const interestG = choices($("#f-interest"), INTEREST, {onChange: v => $("#f-more").hidden = v === "No"});
+const spaceG = choices($("#f-space"), SPACES, {multi:true, exclusive:"No space"});
+const growG = choices($("#f-grow"), VEG.map(v => v.en), {multi:true});
+const budgetG = choices($("#f-budget"), BUDGETS);
+const concernG = choices($("#f-concern"), CONCERNS);
+function openFinal(){
+  const f = app.st.final || {};
+  interestG.set(f.interest || null); spaceG.set(f.space); budgetG.set(f.budget || null); concernG.set(f.concern || null);
+  // preselect what the family bought, if they haven't answered yet
+  const bought = [...new Set(app.st.trips.flatMap(t => t.items.map(i => i.id)))].map(id => (VEG.find(v => v.id === id) || {}).en).filter(Boolean);
+  growG.set(f.grow || bought);
+  $("#f-more").hidden = !f.interest || f.interest === "No";
+  document.querySelectorAll("#v-final .bad").forEach(x => x.classList.remove("bad"));
+  banner("final", ""); show("final");
+}
+$("#f-cancel").onclick = () => show("home");
+$("#f-save").onclick = async () => {
+  const interest = interestG.get();
+  let ok = mark($("#fq-interest"), !!interest);
+  if(interest && interest !== "No") ok = mark($("#fq-space"), spaceG.get().length > 0) && ok;
+  if(!ok){ firstBad(); return; }
+  const final = {interest, space: spaceG.get(), grow: growG.get(), budget: budgetG.get() || "", concern: concernG.get() || ""};
+  await busy($("#f-save"), "Saving…", async () => {
+    try{ setState(await api("saveFinal", {h:app.h, final})); renderHome(); show("home"); toast("Answers saved"); }
+    catch(e){ banner("final", e.message); }
+  });
+};
+
+boot();
+</script>
+</body>
+</html>
